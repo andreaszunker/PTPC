@@ -251,16 +251,16 @@ int main() {
     convolutional_pretransform(K, N, generator_matrix, rate_profile, degree, polynomial);
     fast_transform2(K, N, generator_matrix);
     
-    int w_min;
+    int wmin;
     unsigned long A_wmin;
     int runs = 1000;
     
     clock_t start = clock();
     for (int i = 0; i < runs; ++i)
-        A_wmin = count_minimum_weight_codewords(K, N, generator_matrix, &w_min);
+        A_wmin = count_minimum_weight_codewords(K, N, generator_matrix, &wmin);
     clock_t end = clock();
     printf("PAC RM(%d,%d):\n", r, m);
-    printf("wmin: %d, A_wmin: %lu\n", w_min, A_wmin);
+    printf("wmin: %d, A_wmin: %lu\n", wmin, A_wmin);
     printf("Average elapsed time of %d runs: %.3e s\n", runs, (double)(end - start) / (CLOCKS_PER_SEC * runs));
 
     free(rate_profile); free(generator_matrix);
