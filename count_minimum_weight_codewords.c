@@ -8,17 +8,6 @@
 #include <time.h>
 
 #define min(a,b) ((a) < (b) ? (a) : (b))
-#define RAND_MAX_WIDTH __builtin_popcount(RAND_MAX)
-
-
-long rand64() { // srand(time(NULL));
-  long number = 0;
-  for (int i = 0; i < 64; i += RAND_MAX_WIDTH) {
-    number <<= RAND_MAX_WIDTH;
-    number ^= rand();
-  }
-  return number;
-}
 
 
 /*
@@ -246,7 +235,7 @@ unsigned long count_minimum_weight_codewords(size_t K, size_t N, uint8_t generat
 }
 
 // gcc -march=native -Ofast -o weight_spectrum_extension weight_spectrum_extension.c -lm
-unsigned long main() {
+int main() {
     // PAC code with polynomial 0o155 and RM(3,7) rate-pofile
     int r = 3, m = 7;
     size_t N = 1 << m; 
