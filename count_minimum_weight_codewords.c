@@ -234,7 +234,7 @@ unsigned long count_minimum_weight_codewords(size_t K, size_t N, uint8_t generat
     return A_wmin;
 }
 
-// gcc -march=native -Ofast -o weight_spectrum_extension weight_spectrum_extension.c -lm
+
 int main() {
     // PAC code with polynomial 0o155 and RM(3,7) rate-pofile
     int r = 3, m = 7;
@@ -261,9 +261,10 @@ int main() {
     for (int i = 0; i < runs; ++i)
         A_wmin = count_minimum_weight_codewords(K, N, generator_matrix, &w_min);
     clock_t end = clock();
-    
     printf("PAC RM(%d,%d):\n", r, m);
     printf("wmin: %d, A_wmin: %lu\n", w_min, A_wmin);
     printf("Average elapsed time of %d runs: %.3e s\n", runs, (double)(end - start) / (CLOCKS_PER_SEC * runs));
+
+    free(rate_profile); free(generator_matrix);
     return 0;
 } 
