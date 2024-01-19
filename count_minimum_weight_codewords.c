@@ -62,7 +62,6 @@ void convolutional_pretransform(size_t K, size_t N, uint8_t pretransform[K][N], 
  * matrix: Matrix on which the polar transform is to be applied
  */
 void fast_transform2(size_t rows, size_t columns, uint8_t matrix[rows][columns]) {
-    /* Applies the polar transform of the input along the second dimension. */
     for (int stage = 0; stage < (int)log2(columns); ++stage) {
         int distance = 1 << stage; // Separation of the two inputs to be XORed
         for (int group = 0; group < columns; group += 2*distance) // Group iterator
@@ -83,7 +82,6 @@ void fast_transform2(size_t rows, size_t columns, uint8_t matrix[rows][columns])
  * matrix: Matrix that is to be brought into RREF
  */
 void reduced_row_echelon_form(size_t rows, size_t columns, uint8_t matrix[rows][columns]) {
-    /* Brings the given matrix into reduced row echeclon form (RREF). */
     int current_row = 0; 
     int pivot_column = 0;
 
