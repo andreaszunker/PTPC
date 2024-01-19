@@ -237,8 +237,8 @@ int main() {
     // PAC code with polynomial 0o155 and RM(3,7) rate-pofile
     int r = 3, m = 7;
     size_t N = 1 << m; 
-    size_t degree = 6;
     uint8_t polynomial[] = {1,0,1,1,0,1,1};
+    size_t degree = sizeof(polynomial) - 1;
     
     uint8_t *rate_profile = malloc(sizeof(uint8_t[N])); 
     reed_muller_rate_profile(r, m, rate_profile);
