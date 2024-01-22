@@ -1,4 +1,4 @@
-# Enumeration-of-Minimum-Weight-Codewords-of-Pre-Transformed-Polar-Codes-by-Tree-Intersection
+# Enumeration of Minimum Weight Codewords of Pre Transformed Polar Codes by Tree Intersection
 
 Cite https://arxiv.org/abs/2311.17774
 
