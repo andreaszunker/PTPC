@@ -2,4 +2,4 @@
 
 Cite https://arxiv.org/abs/2311.17774
 
-Compile with gcc -march=native -Ofast -o count_minimum_weight_codewords count_minimum_weight_codewords.c -lm
+Compile with ``gcc -march=native -Ofast -o count_minimum_weight_codewords count_minimum_weight_codewords.c -lm``
