@@ -6,12 +6,12 @@ Compile with
 gcc -march=native -Ofast -o enumerate_minimum_weight_codewords enumerate_minimum_weight_codewords.c -lm
 ```
 
-How to cite paper: https://arxiv.org/abs/2311.17774
-```
+## Citing
+Please cite the following reference if you want to use this script in your research:
+```bibtex
 @misc{zunker2023enumeration,
       title={Enumeration of Minimum Weight Codewords of Pre-Transformed Polar Codes by Tree Intersection}, 
       author={Andreas Zunker and Marvin Geiselhart and Stephan ten Brink},
       year={2023},
 }
 ```
-How to cite repo: ...
