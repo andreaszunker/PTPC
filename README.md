@@ -1,4 +1,4 @@
-# Enumeration of Minimum Weight Codewords of Pre&#x2011Transformed Polar Codes by Tree Intersection
+# Enumeration of Minimum Weight Codewords of Pre&#x2011;Transformed Polar Codes by Tree Intersection
 
 Compile with 
 ```
