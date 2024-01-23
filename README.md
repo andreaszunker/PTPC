@@ -13,7 +13,7 @@ The algorithm efficiently counts the number of minimum weight codewords by trave
 
 Please note that this method cannot find the number of minimum weight codewords if the pre-transformation increases the minimum distance of the polar code.
 
-Further information on the algorithm can be found in the following paper: https://arxiv.org/abs/1812.08562
+Further information on the algorithm can be found in the following paper: https://arxiv.org/abs/2311.17774
 
 ## Usage
 ``enumerate_minimum_weight_codewords.c`` gives a simple example for counting the minimum weight codewords of a PAC code.
