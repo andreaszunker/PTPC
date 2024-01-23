@@ -9,7 +9,7 @@ PTPCs can be split into disjoint cosets whereby the number of minimum weight cod
 The implemented method uses the explicit construction of minimum weight codewords of "universal" polar cosets introduced in [[1]](#1).
 A coset of a PTPC is always contained in the corresponding "universal" polar coset.
 Consequently, the minimum weight codewords in a coset of a PTPC can be found by computing the intersection with the set of minimum weight codewords in the corresponding "universal" polar coset.
-The algorithm efficiently counts the number of minimum weight codewords by traversing the intersection tree of the two codeword sets.
+The algorithm efficiently counts the number of minimum weight codewords by traversing the intersection tree of the messages that form the two codeword sets.
 
 Please note that this method cannot find the number of minimum weight codewords if the pre-transformation increases the minimum distance of the polar code.
 
