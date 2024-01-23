@@ -2,7 +2,7 @@
 
 Compile with 
 ```
-gcc -march=native -Ofast -o count_minimum_weight_codewords count_minimum_weight_codewords.c -lm
+gcc -march=native -Ofast -o enumerate_minimum_weight_codewords enumerate_minimum_weight_codewords.c -lm
 ```
 
 How to cite paper: https://arxiv.org/abs/2311.17774
