@@ -2,12 +2,12 @@
 This is a C script for enumerating the minimum weight codewords of pre-transformed polar codes (PTPCs).
 
 ## Overview
-Pre-transformation can improve the distance properties polar codes as reducing the number of minimum weight codewords 
+Pre-transformation can improve the distance properties polar codes by reducing the number of minimum weight codewords 
 and/or increasing the minimum distance.
 PTPCs can be split into disjoint cosets whereby the number of minimum weight codewords can be determined by counting their number in each coset.
 
 The implemented method uses the explicit construction of minimum weight codewords of "universal" polar cosets introduced in [[1]](#1).
-A coset of a PTPC is always contained in the correspoding "universal" polar coset.
+A coset of a PTPC is always contained in the corresponding "universal" polar coset.
 Consequently, the minimum weight codewords in a coset of a PTPC can be found by computing the intersection with the set of minimum weight codewords in the corresponding "universal" polar coset.
 The algorithm efficiently counts the number of minimum weight codewords by traversing the intersection tree of the two codeword sets.
 
