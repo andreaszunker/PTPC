@@ -129,13 +129,14 @@ void reduced_row_echelon_form(size_t rows, size_t columns, uint8_t matrix[rows][
  Updates the message to form a "wmin"-weight codeword of a universal polar coset.
  */ 
 void update_message(size_t coset_index, size_t level, int64_t message[]) {
+    // Update the message according to the "M"-set formulation
     for (size_t message_index = coset_index+1; message_index < level; ++message_index) {
         if (message[message_index >> 6] & ((int64_t)1 << (message_index & 63)) && (~coset_index & level & message_index) == 0) {
             size_t update_index = (~coset_index & (level | message_index)) | (level & message_index);
             message[update_index >> 6] ^= (int64_t)1 << (update_index & 63);
         }
     }
-    message[level >> 6] |= (int64_t)1 << (level & 63);
+    message[level >> 6] |= (int64_t)1 << (level & 63); // set the "level"-th bit of the message to one. 
 }
 
 
@@ -149,40 +150,48 @@ unsigned long enumerate_subtree(
     uint8_t rate_profile[], uint8_t sibling_levels[], int64_t pretransform[][message_size]
     ) {
     unsigned long A_wmin = 0UL;
+    // Copy the message so the original message can be used later to enumerate the other sub-tree
     int64_t *message = malloc(sizeof(int64_t[message_size])); memcpy(message, start_message, sizeof(int64_t[message_size]));
     update_message(coset_index, start_level, message);
     for (size_t level = start_level + 1; level <= stop_level; ++level) {
-        if (rate_profile[level]) {
+        if (rate_profile[level]) { 
+             // Sibling level of the tree correspoding to the PTPC coset
             if (sibling_levels[level]) {
+                // Sibling level of the "wmin"-weight codeword tree of a universal polar coset -> sibling level of the intersection tree
                 A_wmin += enumerate_subtree(coset_index, level, stop_level, message_size, message, rate_profile, sibling_levels, pretransform);
             }
         } else {
-            int64_t bit = 0L;
+            // Einzelchild level of the intersection tree
+            int64_t bit = 0L; 
             for (size_t index = coset_index >> 6; index < ((level-1) >> 6)+1; ++index)
                 bit ^= message[index] & pretransform[level][index];
             if (__builtin_popcountl(bit) % 2 != ((message[level >> 6] >> (level & 63)) & 1)) {
+                // The pre-transformation does not match with the current message
                 if (sibling_levels[level]) {
+                    // Sibling level of the "wmin"-weight codeword tree of a universal polar coset -> message can be updated
                     update_message(coset_index, level, message);
                 } else {
+                    // Both trees have einzelchild levels -> the message cannot be adjusted -> the message path does not form a "wmin"-weight codeword
                     free(message); 
                     return A_wmin;
                 }
             }
         }
     }
+    // The message path does form a "wmin"-weight codeword
     free(message); 
     return A_wmin + 1;
 }
 
 
 /*
- * Struct: EnumRes
+ * Struct: enumeration_result
  * ---------------
  * Struct representing the result of "wmin"-weight codeword enumeration. It contains:
  * - wmin: Minimum weight "wmin"
  * - A_wmin: Number of "wmin"-weight codewords
  */
-struct EnumRes {
+struct enumeration_result {
   unsigned int wmin;
   unsigned long A_wmin;
 };
@@ -197,33 +206,35 @@ struct EnumRes {
  * N: Code length
  * generator_matrix: K×N generator matrix
  *
- * Returns: A struct of type EnumRes containing:
+ * Returns: A struct of type enumeration_result containing:
  * - wmin: Minimum weight "wmin"
  * - A_wmin: Number of "wmin"-weight codewords
  */ 
-struct EnumRes enumerate_minimum_weight_codewords(size_t K, size_t N, uint8_t generator_matrix[K][N]) {
+struct enumeration_result enumerate_minimum_weight_codewords(size_t K, size_t N, uint8_t generator_matrix[K][N]) {
     // Compute the pre-transformation matrix and bring it into RREF
     uint8_t (*pretransform)[N] = malloc(sizeof(uint8_t[K][N]));
-    memcpy(pretransform, generator_matrix, sizeof(uint8_t[K][N]));
-    fast_transform2(K, N, pretransform);
-    reduced_row_echelon_form(K, N, pretransform);    
+    memcpy(pretransform, generator_matrix, sizeof(uint8_t[K][N])); // copy so that the given generator matrix remains unchanged
+    fast_transform2(K, N, pretransform); // get the pre-transformation matrix
+    reduced_row_echelon_form(K, N, pretransform); // bring the pre-transformation matrix into RREF 
     
     // Expand the pre-transform into a square matrix and store it with bitwise columns and in Fortran order
-    uint8_t *rate_profile = calloc(N, sizeof(uint8_t)); 
-    size_t message_size = ((N-1) >> 6)+1;
+    uint8_t *rate_profile = calloc(N, sizeof(uint8_t)); // indicator of the sibling level of the PTPC
+    size_t message_size = ((N-1) >> 6)+1; // the message is stored bitwise
     int64_t (*expanded_pretransform)[message_size] = calloc(N*message_size, sizeof(int64_t)); 
                 
     size_t pivot_column = 0;
     for (size_t row = 0; row < K; ++row) {
+        // find the pivot point columns of the pre-transformation matrix -> information bits
         while (pretransform[row][pivot_column] == 0)
             ++pivot_column;
         for (size_t column = 0; column < N; ++column)
+            // store the rows in an expanded N×N pre-transformation with bitwise columns -> faster checking of the dynamic frozen bits
             expanded_pretransform[column][pivot_column >> 6] |= (int64_t)pretransform[row][column] << (pivot_column & 63);
         rate_profile[pivot_column] = 1;  
     } 
     int64_t *message = malloc(sizeof(int64_t[message_size])); 
-    uint8_t *sibling_levels = malloc(sizeof(uint8_t[N])); 
-    struct EnumRes result = {UINT_MAX, 0UL};
+    uint8_t *sibling_levels = malloc(sizeof(uint8_t[N])); // indicator of the sibling level of the "wmin"-weight codeword tree of a universal polar coset
+    struct enumeration_result result = {UINT_MAX, 0UL};
     
     // Find minimum Hamming weight "wmin" of a coset leader
     for (size_t index = 0; index < N; ++index)
@@ -236,6 +247,8 @@ struct EnumRes enumerate_minimum_weight_codewords(size_t K, size_t N, uint8_t ge
         
         // The coset is led by a "wmin"-weight row
         memset(message, 0, sizeof(int64_t[message_size])); memset(sibling_levels, 0, sizeof(uint8_t[N])); 
+        
+        // Find the level after the pre-transformation cannot prevent the formation of "wmin"-weight codewords and compute their number
         size_t stop_level = coset_index; int coefficient = 1;
         for (size_t level = coset_index+1; level < N; ++level) {
             if (__builtin_popcount(~coset_index & level) == 1) {
@@ -280,7 +293,7 @@ int main() {
     fast_transform2(K, N, generator_matrix);
     
     // Evaluate
-    struct EnumRes result;
+    struct enumeration_result result;
     
     int runs = 1000;
     clock_t start = clock();
