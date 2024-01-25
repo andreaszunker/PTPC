@@ -248,7 +248,7 @@ struct enumeration_result enumerate_minimum_weight_codewords(size_t K, size_t N,
         // The coset is led by a "wmin"-weight row
         memset(message, 0, sizeof(int64_t[message_size])); memset(sibling_levels, 0, sizeof(uint8_t[N])); 
         
-        // Find the level after the pre-transformation cannot prevent the formation of "wmin"-weight codewords and compute their number
+        // Find the level after which the pre-transformation cannot prevent the formation of "wmin"-weight codewords and compute their number
         size_t stop_level = coset_index; int coefficient = 1;
         for (size_t level = coset_index+1; level < N; ++level) {
             if (__builtin_popcount(~coset_index & level) == 1) {
