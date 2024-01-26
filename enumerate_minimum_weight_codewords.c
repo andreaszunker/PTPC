@@ -262,7 +262,7 @@ struct enumeration_result enumerate_minimum_weight_codewords(size_t K, size_t N,
             coset_index, coset_index, stop_level, message_size, message, rate_profile, sibling_levels, expanded_pretransform
         );
     }
-    free(rate_profile); free(expanded_pretransform); free(message); free(sibling_levels); 
+    free(rate_profile); free(pretransform); free(expanded_pretransform); free(message); free(sibling_levels); 
     return result;
 }
 
