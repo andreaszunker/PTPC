@@ -52,8 +52,9 @@ void convolutional_pretransform(size_t K, size_t N, uint8_t pretransform[K][N], 
     size_t row = 0;
     for (size_t index = 0; index < N; ++index) {
         if (rate_profile[index]) {
-            for (size_t position = 0, column = index; position <= degree && column < N; ++position, ++column)
+            for (size_t position = 0, column = index; position <= degree && column < N; ++position, ++column) {
                 pretransform[row][column] = polynomial[position];
+            }
             ++row;
         }
     }
@@ -72,10 +73,13 @@ void convolutional_pretransform(size_t K, size_t N, uint8_t pretransform[K][N], 
 void fast_transform2(size_t rows, size_t columns, uint8_t matrix[rows][columns]) {
     for (int stage = 0; stage < (int)log2(columns); ++stage) {
         size_t distance = 1 << stage; // Separation of the two inputs to be XORed
-        for (size_t group = 0; group < columns; group += 2*distance) // Group iterator
-            for (size_t butterfly = 0; butterfly < distance; ++butterfly) // Butterfly iterator
-                for (size_t row = 0; row < rows; ++row)
+        for (size_t group = 0; group < columns; group += 2*distance) { // Group iterator
+            for (size_t butterfly = 0; butterfly < distance; ++butterfly) { // Butterfly iterator
+                for (size_t row = 0; row < rows; ++row) {
                     matrix[row][group+butterfly] ^= matrix[row][group+butterfly+distance];
+                }
+            }
+        }
     } 
 }
 
