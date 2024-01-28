@@ -6,8 +6,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <unistd.h>
-#include <sys/time.h>
 
 #define min(a,b) ((a) < (b) ? (a) : (b))
 
