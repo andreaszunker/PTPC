@@ -132,11 +132,12 @@ void reduced_row_echelon_form(size_t rows, size_t columns, uint8_t matrix[rows][
  * ------------------------
  Updates the message to form a "wmin"-weight codeword of a universal polar coset.
  */ 
-void update_message(size_t coset_index, size_t level, int64_t message[]) {
+void update_message(int coset_index, int level, int64_t message[]) {
+    // Using int's instead of size_t's makes a noticeable speed difference here. To know why one would have to examine and understand the assembler code...
     // Update the message according to the "M"-set formulation
     for (size_t message_index = coset_index+1; message_index < level; ++message_index) {
         if (message[message_index >> 6] & ((int64_t)1 << (message_index & 63)) && (~coset_index & level & message_index) == 0) {
-            size_t update_index = (~coset_index & (level | message_index)) | (level & message_index);
+            int update_index = (~coset_index & (level | message_index)) | (level & message_index);
             message[update_index >> 6] ^= (int64_t)1 << (update_index & 63);
         }
     }
@@ -259,22 +260,22 @@ struct enumeration_result enumerate_minimum_weight_codewords(size_t K, size_t N,
         memset(message, 0, sizeof(int64_t[message_size])); memset(sibling_levels, 0, sizeof(uint8_t[N])); 
         
         // Find the level after which the pre-transformation cannot prevent the formation of "wmin"-weight codewords and compute their number
-        size_t stop_level = coset_index; 
-        unsigned long coefficient = 1;
+        size_t stop_level = coset_index; // f*(I) level
+        unsigned int shifts = 0; // the PDBTs after the f*(I) level have "1 << shifts" codewords, where "shifts" = |K°(I) ∩ I|
         for (size_t level = coset_index+1; level < N; ++level) {
             if (__builtin_popcount(~coset_index & level) == 1) {
                 sibling_levels[level] = 1;
                 if (rate_profile[level]) {
-                    coefficient *= 2;
+                    ++shifts;
                 }
             } else if (rate_profile[level] == 0) {
                 stop_level = level; 
-                coefficient = 1;
+                shifts = 0;
             }
         }
-        result.A_wmin += coefficient * enumerate_subtree(
+        result.A_wmin += enumerate_subtree(
             coset_index, coset_index, stop_level, message_size, message, rate_profile, sibling_levels, expanded_pretransform
-        );
+        ) << shifts;
     }
     free(pretransform); free(rate_profile); free(expanded_pretransform); free(message); free(sibling_levels); 
     return result;
