@@ -21,7 +21,7 @@ Compile with:
 ```
 gcc -march=native -Ofast -o enumerate_minimum_weight_codewords enumerate_minimum_weight_codewords.c
 ```
-The code was tested on an Intel(R) Core(TM) i7-4790K CPU @ 4.00GHz.
+The code was tested on an Intel® Core™ i7-4790K CPU @ 4.00GHz.
 
 ## Citing
 Please cite the following reference if you want to use this algorithm in your research:
