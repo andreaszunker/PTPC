@@ -1,6 +1,4 @@
-#include <math.h>
 #include <limits.h>
-#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,7 +11,7 @@
 /*
  * Enumeration of Minimum Weight Codewords of Pre-Transformed Polar Codes by Tree Intersection
  * -------------------------------------------------------------------------------------------
- * Compile with: gcc -march=native -Ofast -o enumerate_minimum_weight_codewords enumerate_minimum_weight_codewords.c -lm
+ * Compile with: gcc -march=native -Ofast -o enumerate_minimum_weight_codewords enumerate_minimum_weight_codewords.c
  */
 
 
@@ -62,19 +60,18 @@ void convolutional_pretransform(size_t K, size_t N, uint8_t pretransform[K][N], 
 /*
  * Function: fast_transform2
  * -------------------------
- * Applies the polar transform to the given matrix al-ong the second dimension.
+ * Applies the polar transform to the given matrix along the second dimension.
  * 
  * rows: Number of rows of the matrix
  * columns: Number of columns of the matrix
  * matrix: Matrix on which the polar transform is to be applied
  */
 void fast_transform2(size_t rows, size_t columns, uint8_t matrix[rows][columns]) {
-    for (int stage = 0; stage < (int)log2(columns); ++stage) {
-        size_t distance = 1 << stage; // Separation of the two inputs to be XORed
-        for (size_t group = 0; group < columns; group += 2*distance) { // Group iterator
-            for (size_t butterfly = 0; butterfly < distance; ++butterfly) { // Butterfly iterator
-                for (size_t row = 0; row < rows; ++row) {
-                    matrix[row][group+butterfly] ^= matrix[row][group+butterfly+distance];
+    for (size_t row = 0; row < rows; ++row) {
+        for (size_t distance = 1; distance < columns; distance *= 2) { // Separation of the two inputs to be XORed
+            for (size_t group = 0; group < columns; group += 2*distance) { // Group iterator
+                for (size_t butterfly = 0; butterfly < distance; ++butterfly) { // Butterfly iterator
+                     matrix[row][group+butterfly] ^= matrix[row][group+butterfly+distance];
                 }
             }
         }
@@ -130,7 +127,7 @@ void reduced_row_echelon_form(size_t rows, size_t columns, uint8_t matrix[rows][
 /*
  * Function: update_message
  * ------------------------
- Updates the message to form a "wmin"-weight codeword of a universal polar coset.
+ * Updates the message to form a "wmin"-weight codeword of a universal polar coset.
  */ 
 void update_message(int coset_index, int level, int64_t message[]) {
     // Using int's instead of size_t's makes a noticeable speed difference here. To know why one would have to examine and understand the assembler code...
@@ -279,6 +276,23 @@ struct enumeration_result enumerate_minimum_weight_codewords(size_t K, size_t N,
     }
     free(pretransform); free(rate_profile); free(expanded_pretransform); free(message); free(sibling_levels); 
     return result;
+}
+
+
+/*
+ * Function: numba_wrapper
+ * -----------------------
+ * Wraps "enumerate_minimum_weight_codewords" so that it is easily callable from a Numba accelerated Python function.
+ *
+ * K: Code dimension
+ * N: Code length
+ * generator_matrix: K×N generator matrix
+ * wmin: A pointer to the minimum weight "wmin"
+ * A_wmin: A pointer to the number of "wmin"-weight codewords
+ */ 
+void enumerate_minimum_weight_codewords_wrapper(size_t K, size_t N, uint8_t generator_matrix[K][N], unsigned int* wmin, unsigned long* A_wmin) {
+    struct enumeration_result result = enumerate_minimum_weight_codewords(K, N, generator_matrix);
+    *wmin = result.wmin; *A_wmin = result.A_wmin; // dealing with C structs inside of a Numba JIT function is difficult -> just use pointers 
 }
 
 
