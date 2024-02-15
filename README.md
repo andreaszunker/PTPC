@@ -16,7 +16,7 @@ Please note that this method cannot find the number of minimum weight codewords 
 Further information on the algorithm can be found in the following paper: https://arxiv.org/abs/2311.17774
 
 ## Usage
-``enumerate_minimum_weight_codewords.c`` gives a simple example for counting the minimum weight codewords of a PAC code.
+``enumeration.c`` gives a simple example for counting the minimum weight codewords of a PAC code.
 Compile with:
 ```
 gcc -march=native -Ofast -o enumeration enumeration.c
