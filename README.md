@@ -19,7 +19,7 @@ Further information on the algorithm can be found in the following paper: https:
 ``enumerate_minimum_weight_codewords.c`` gives a simple example for counting the minimum weight codewords of a PAC code.
 Compile with:
 ```
-gcc -march=native -Ofast -o enumerate_minimum_weight_codewords enumerate_minimum_weight_codewords.c
+gcc -march=native -Ofast -o enumeration enumeration.c
 ```
 The code was tested on an Intel® Core™ i7-4790K CPU @ 4.00GHz.
 
