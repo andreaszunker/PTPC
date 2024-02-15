@@ -197,13 +197,13 @@ unsigned long enumerate_subtree(
 
 
 /*
- * Struct: enumeration_result
- * --------------------------
+ * Struct: tuple
+ * -------------
  * Struct representing the result of "wmin"-weight codeword enumeration. It contains:
  * - wmin: Minimum weight "wmin"
  * - A_wmin: Number of "wmin"-weight codewords
  */
-struct enumeration_result {
+struct tuple {
   unsigned int wmin;
   unsigned long A_wmin;
 };
@@ -222,7 +222,7 @@ struct enumeration_result {
  * - wmin: Minimum weight "wmin"
  * - A_wmin: Number of "wmin"-weight codewords
  */ 
-struct enumeration_result enumerate_minimum_weight_codewords(size_t K, size_t N, uint8_t generator_matrix[K][N]) {
+struct tuple enumerate_minimum_weight_codewords(size_t K, size_t N, uint8_t generator_matrix[K][N]) {
     // Compute the pre-transformation matrix and bring it into RREF
     uint8_t (*pretransform)[N] = malloc(sizeof(uint8_t[K][N]));
     memcpy(pretransform, generator_matrix, sizeof(uint8_t[K][N])); // copy so that the given generator matrix remains unchanged
@@ -247,7 +247,7 @@ struct enumeration_result enumerate_minimum_weight_codewords(size_t K, size_t N,
     } 
     int64_t *message = malloc(sizeof(int64_t[message_size])); 
     uint8_t *sibling_levels = malloc(sizeof(uint8_t[N])); // indicator of the sibling level of the "wmin"-weight codeword tree of a universal polar coset
-    struct enumeration_result result = {UINT_MAX, 0UL};
+    struct tuple result = {UINT_MAX, 0UL};
     
     // Find minimum Hamming weight "wmin" of a coset leader
     for (size_t index = 0; index < N; ++index) {
@@ -298,7 +298,7 @@ struct enumeration_result enumerate_minimum_weight_codewords(size_t K, size_t N,
  * A_wmin: A pointer to the number of "wmin"-weight codewords
  */ 
 void enumerate_minimum_weight_codewords_wrapper(size_t K, size_t N, uint8_t generator_matrix[K][N], unsigned int* wmin, unsigned long* A_wmin) {
-    struct enumeration_result result = enumerate_minimum_weight_codewords(K, N, generator_matrix);
+    struct tuple result = enumerate_minimum_weight_codewords(K, N, generator_matrix);
     *wmin = result.wmin; *A_wmin = result.A_wmin; // dealing with C structs inside of a Numba JIT function is difficult -> just use pointers 
 }
 
@@ -306,7 +306,7 @@ void enumerate_minimum_weight_codewords_wrapper(size_t K, size_t N, uint8_t gene
 /*
  * Function: main
  * --------------
- * Enumeration of the "wmin"-weight codeowords of a PAC code with polynomial 0o155 and RM(3,7) rate-pofile
+ * Enumeration of the "wmin"-weight codeowords of a PAC code with polynomial 0o155 and RM(3,7) rate-profile
  */
 int main() {
     // Code parameters
@@ -332,7 +332,7 @@ int main() {
     fast_transform2(K, N, generator_matrix);
     
     // Evaluate
-    struct enumeration_result result;
+    struct tuple result;
     
     int runs = 1000;
     clock_t start = clock();
