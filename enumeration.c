@@ -11,7 +11,15 @@
 /*
  * Enumeration of Minimum Weight Codewords of Pre-Transformed Polar Codes by Tree Intersection
  * -------------------------------------------------------------------------------------------
- * Compile with: gcc -march=native -Ofast -o enumerate_minimum_weight_codewords enumerate_minimum_weight_codewords.c
+ * Compile with: gcc -march=native -Ofast -o enumeration enumeration.c
+ * 
+ * Please cite the following reference if you want to use this algorithm in your research:
+ * 
+ * @misc{zunker2023enumeration,
+ *      title={Enumeration of Minimum Weight Codewords of Pre-Transformed Polar Codes by Tree Intersection}, 
+ *      author={Andreas Zunker and Marvin Geiselhart and Stephan ten Brink},
+ *      year={2023},
+ * }
  */
 
 
@@ -130,8 +138,7 @@ void reduced_row_echelon_form(size_t rows, size_t columns, uint8_t matrix[rows][
  * Updates the message to form a "wmin"-weight codeword of a universal polar coset.
  */ 
 void update_message(int coset_index, int level, int64_t message[]) {
-    // Using int's instead of size_t's makes a noticeable speed difference here. To know why one would have to examine and understand the assembler code...
-    // Update the message according to the "M"-set formulation
+    // Update the message according to the "M"-set formulation (using int instead of size_t makes a noticeable speed difference here).
     for (size_t message_index = coset_index+1; message_index < level; ++message_index) {
         if (message[message_index >> 6] & ((int64_t)1 << (message_index & 63)) && (~coset_index & level & message_index) == 0) {
             int update_index = (~coset_index & (level | message_index)) | (level & message_index);
@@ -191,7 +198,7 @@ unsigned long enumerate_subtree(
 
 /*
  * Struct: enumeration_result
- * ---------------
+ * --------------------------
  * Struct representing the result of "wmin"-weight codeword enumeration. It contains:
  * - wmin: Minimum weight "wmin"
  * - A_wmin: Number of "wmin"-weight codewords
@@ -280,8 +287,8 @@ struct enumeration_result enumerate_minimum_weight_codewords(size_t K, size_t N,
 
 
 /*
- * Function: numba_wrapper
- * -----------------------
+ * Function: enumerate_minimum_weight_codewords_wrapper
+ * ----------------------------------------------------
  * Wraps "enumerate_minimum_weight_codewords" so that it is easily callable from a Numba accelerated Python function.
  *
  * K: Code dimension
