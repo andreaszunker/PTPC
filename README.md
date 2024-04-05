@@ -26,11 +26,12 @@ The code was tested on an Intel® Core™ i7-4790K CPU @ 4.00GHz.
 ## Citing
 Please cite the following reference if you want to use this algorithm in your research:
 ```bibtex
-@misc{zunker2023enumeration,
-      title={Enumeration of Minimum Weight Codewords of Pre-Transformed Polar Codes by Tree Intersection}, 
-      author={Andreas Zunker and Marvin Geiselhart and Stephan ten Brink},
-      year={2023},
-}
+@INPROCEEDINGS{10480163,
+  author={Zunker, Andreas and Geiselhart, Marvin and Ten Brink, Stephan},
+  booktitle={2024 58th Annual Conference on Information Sciences and Systems (CISS)}, 
+  title={Enumeration of Minimum Weight Codewords of Pre-Transformed Polar Codes by Tree Intersection}, 
+  year={2024},
+  doi={10.1109/CISS59072.2024.10480163}}
 ```
 
 ## References
