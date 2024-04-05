@@ -15,11 +15,12 @@
  * 
  * Please cite the following reference if you want to use this algorithm in your research:
  * 
- * @misc{zunker2023enumeration,
- *      title={Enumeration of Minimum Weight Codewords of Pre-Transformed Polar Codes by Tree Intersection}, 
- *      author={Andreas Zunker and Marvin Geiselhart and Stephan ten Brink},
- *      year={2023},
- * }
+ * @INPROCEEDINGS{10480163,
+ *   author={Zunker, Andreas and Geiselhart, Marvin and Ten Brink, Stephan},
+ *   booktitle={2024 58th Annual Conference on Information Sciences and Systems (CISS)}, 
+ *   title={Enumeration of Minimum Weight Codewords of Pre-Transformed Polar Codes by Tree Intersection}, 
+ *   year={2024},
+ *   doi={10.1109/CISS59072.2024.10480163}}
  */
 
 
@@ -66,7 +67,7 @@ void convolutional_pretransform(size_t K, size_t N, uint8_t pretransform[K][N], 
 
 
 /*
- * Function: fast_transform2
+ * Function: fast_transform
  * -------------------------
  * Applies the polar transform to the given matrix along the second dimension.
  * 
@@ -74,7 +75,7 @@ void convolutional_pretransform(size_t K, size_t N, uint8_t pretransform[K][N], 
  * columns: Number of columns of the matrix
  * matrix: Matrix on which the polar transform is to be applied
  */
-void fast_transform2(size_t rows, size_t columns, uint8_t matrix[rows][columns]) {
+void fast_transform(size_t rows, size_t columns, uint8_t matrix[rows][columns]) {
     for (size_t row = 0; row < rows; ++row) {
         for (size_t distance = 1; distance < columns; distance *= 2) { // Separation of the two inputs to be XORed
             for (size_t group = 0; group < columns; group += 2*distance) { // Group iterator
@@ -118,7 +119,7 @@ void reduced_row_echelon_form(size_t rows, size_t columns, uint8_t matrix[rows][
                 matrix[pivot_row][column] = temp;
             }
         }
-        // Eliminate all elements of in pivot current column except the pivot itself
+        // Eliminate all elements in the pivot column except the pivot itself
         for (size_t row = 0; row < rows; ++row) {
             if (row != current_row && matrix[row][pivot_column] != 0) {
                 for (size_t column = pivot_column; column < columns; ++column) {
@@ -226,7 +227,7 @@ struct tuple enumerate_minimum_weight_codewords(size_t K, size_t N, uint8_t gene
     // Compute the pre-transformation matrix and bring it into RREF
     uint8_t (*pretransform)[N] = malloc(sizeof(uint8_t[K][N]));
     memcpy(pretransform, generator_matrix, sizeof(uint8_t[K][N])); // copy so that the given generator matrix remains unchanged
-    fast_transform2(K, N, pretransform); // get the pre-transformation matrix
+    fast_transform(K, N, pretransform); // get the pre-transformation matrix
     reduced_row_echelon_form(K, N, pretransform); // bring the pre-transformation matrix into RREF 
     
     // Expand the pre-transform into a N×N matrix and store it with bitwise columns and in Fortran order
@@ -329,7 +330,7 @@ int main() {
     // Construct the generator matrix
     uint8_t (*generator_matrix)[N] = malloc(sizeof(uint8_t[K][N]));
     convolutional_pretransform(K, N, generator_matrix, rate_profile, degree, polynomial);
-    fast_transform2(K, N, generator_matrix);
+    fast_transform(K, N, generator_matrix);
     
     // Evaluate
     struct tuple result;
