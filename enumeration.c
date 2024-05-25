@@ -34,7 +34,7 @@
  * rate_profile: Buffer of length N for the binary representation of the rate-profile
  */
 void reed_muller_rate_profile(int r, int m, uint8_t rate_profile[]) {
-    for (size_t index; index < (1 << m); ++index) {
+    for (size_t index = 0; index < (1 << m); ++index) {
         rate_profile[index] = __builtin_popcountl(index) >= m-r;
     }
 }
