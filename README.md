@@ -1,5 +1,5 @@
 # Enumeration of Minimum Weight Codewords of Pre&#x2011;Transformed Polar Codes by Tree Intersection
-This is a C script for enumerating the minimum weight codewords of pre-transformed polar codes (PTPCs).
+This is a C source file for enumerating the minimum weight codewords of pre-transformed polar codes (PTPCs).
 
 ## Overview
 Pre-transformation can improve the distance properties polar codes by reducing the number of minimum weight codewords 
