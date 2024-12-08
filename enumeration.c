@@ -245,17 +245,18 @@ uint64_t enumerate_subtree(
         for (size_t i = args.coset_index >> 6; i < ((level-1) >> 6)+1; ++i) {
             bit ^= message[i] & PRETRANSFORM(args)[level][i];
         }
-        if ((__builtin_popcountl(bit) & 1) != message_bit) {
-            // The pre-transformation does not match with the current message
-            if (args.sibling_levels[level]) {
-                // Sibling level of the "wmin"-weight codeword tree of a universal polar coset -> message can be updated
-                update_message(args.coset_index, level, message);
-            } else {
-                // Both trees have einzelchild levels -> the message cannot be adjusted -> the message path does not form a "wmin"-weight codeword
-                free(message); 
-                return A_wmin;
-            }
+        if ((__builtin_popcountl(bit) & 1) == message_bit) {
+            continue;
         }
+        // The pre-transformation does not match with the current message
+        if (args.sibling_levels[level]) {
+            // Sibling level of the "wmin"-weight codeword tree of a universal polar coset -> message can be updated
+            update_message(args.coset_index, level, message);
+            continue;
+        }
+        // Both trees have einzelchild levels -> the message cannot be adjusted -> the message path does not form a "wmin"-weight codeword
+        free(message); 
+        return A_wmin;
     }
     // The message path does form a "wmin"-weight codeword
     free(message); 
