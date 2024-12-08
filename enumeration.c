@@ -44,7 +44,7 @@
 
 /*
  * Struct: args
- * -------------
+ * ------------
  */
 struct args {
     size_t   coset_index, stop_level, message_size;
@@ -54,8 +54,8 @@ struct args {
 
 
 /*
- * Struct: tuple
- * -------------
+ * Struct: result
+ * --------------
  * Struct representing the result of "wmin"-weight codeword enumeration. It 
  * contains:
  * - wmin: Minimum weight "wmin"
