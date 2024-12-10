@@ -77,7 +77,11 @@ struct result {
  * rate_profile: Buffer of length N for the binary representation of the 
  *     rate-profile
  */
-void reed_muller_rate_profile(int r, int m, uint8_t rate_profile[]) {
+void reed_muller_rate_profile(
+    size_t  r, 
+    size_t  m, 
+    uint8_t rate_profile[1ULL << m]
+) {
     for (size_t index = 0; index < (1 << m); ++index) {
         rate_profile[index] = __builtin_popcountl(index) >= m-r;
     }
@@ -99,12 +103,12 @@ void reed_muller_rate_profile(int r, int m, uint8_t rate_profile[]) {
  *     coefficient first
  */
 void convolutional_pretransform(
-    size_t  K, 
-    size_t  N, 
-    uint8_t pretransform[K][N], 
-    uint8_t rate_profile[N], 
-    size_t  degree, 
-    uint8_t polynomial[degree+1]
+    size_t        K, 
+    size_t        N, 
+    uint8_t       pretransform[K][N], 
+    const uint8_t rate_profile[N], 
+    size_t        degree, 
+    const uint8_t polynomial[degree+1]
 ) {
     memset(pretransform, 0, sizeof(uint8_t[K][N]));
     size_t row = 0;
@@ -135,11 +139,10 @@ void polar_transform(
     uint8_t matrix[rows][columns]
 ) {
     for (size_t row = 0; row < rows; ++row) {
-        for (size_t distance = 1; distance < columns; distance *= 2) { // Separation of the two inputs to be XORed
-            for (size_t group = 0; group < columns; group += 2*distance) { // Group iterator
-                for (size_t butterfly = 0; butterfly < distance; ++butterfly) { // Butterfly iterator
-                     matrix[row][group+butterfly] ^= 
-                         matrix[row][group+butterfly+distance];
+        for (size_t d = 1; d < columns; d *= 2) { // separation of the two inputs to be XORed
+            for (size_t g = 0; g < columns; g += 2*d) { // group iterator
+                for (size_t b = g; b < g+d; ++b) { // butterfly iterator
+                     matrix[row][b] ^= matrix[row][b+d];
                 }
             }
         }
@@ -150,7 +153,7 @@ void polar_transform(
 /*
  * Function: reduced_row_echelon_form
  * ----------------------------------
- * Brings the given matrix into reduced row echelon form (RREF).
+ * Brings the given binary matrix into reduced row echelon form (RREF).
  * 
  * rows: Number of rows of the matrix
  * columns: Number of columns of the matrix
@@ -166,7 +169,7 @@ void reduced_row_echelon_form(
     while (current_row < rows && pivot_column < columns) {
         // Find the pivot element with a non-zero value in the current column
         size_t pivot_row = current_row;
-        while (pivot_row < rows && matrix[pivot_row][pivot_column] == 0) {
+        while (pivot_row < rows && !matrix[pivot_row][pivot_column]) {
             ++pivot_row;
         }
         if (pivot_row >= rows) {
@@ -184,7 +187,7 @@ void reduced_row_echelon_form(
         }
         // Eliminate all elements in the pivot column except the pivot itself
         for (size_t row = 0; row < rows; ++row) {
-            if (row != current_row && matrix[row][pivot_column] != 0) {
+            if (row != current_row && matrix[row][pivot_column]) {
                 for (size_t column = pivot_column; column < columns; ++column) {
                     matrix[row][column] ^= matrix[current_row][column];
                 }
@@ -202,16 +205,14 @@ void reduced_row_echelon_form(
  * coset.
  */ 
 inline void update_message(int coset_index, int level, uint64_t message[]) {
-    // Update the message according to the "M"-set formulation (using int instead of size_t makes a noticeable speed difference here).
-    for (size_t i = coset_index+1; i < level; ++i) {
-        if (message[i >> 6] & ((uint64_t)1 << (i & 63))
-            && (~coset_index & level & i) == 0
-        ) {
-            int update_index = (~coset_index & (level | i)) | (level & i);
-            message[update_index >> 6] ^= (uint64_t)1 << (update_index & 63);
+    // Update the message according to the "M"-set formulation 
+    for (int i = coset_index+1; i < level; ++i) { // using int instead of size_t makes a noticeable speed difference here
+        if (message[i >> 6] & (1ULL << (i & 63)) && !(~coset_index & level & i)) {
+            const int update_index = (~coset_index & (level | i)) | (level & i);
+            message[update_index >> 6] ^= 1ULL << (update_index & 63);
         }
     }
-    message[level >> 6] |= (uint64_t)1 << (level & 63); // set the "level"-th bit of the message to one. 
+    message[level >> 6] |= 1ULL << (level & 63); // set the "level"-th bit of the message to one. 
 }
 
 
@@ -221,9 +222,9 @@ inline void update_message(int coset_index, int level, uint64_t message[]) {
  * Counts the "wmin"-weight codewords contained in the given sub-tree.
  */ 
 uint64_t enumerate_subtree(
-    struct args args, 
-    size_t      level, 
-    uint64_t    start_message[]
+    struct args    args, 
+    size_t         level, 
+    const uint64_t start_message[]
 ) {
     // Copy the message so the original message can be used later to enumerate the other sub-tree
     uint64_t *message = malloc(sizeof(uint64_t[args.message_size])); 
@@ -232,7 +233,7 @@ uint64_t enumerate_subtree(
     }
     memcpy(message, start_message, sizeof(uint64_t[args.message_size]));
     
-    uint64_t A_wmin = 0UL;
+    uint64_t A_wmin = 0;
     update_message(args.coset_index, level, message);
     for (++level; level <= args.stop_level; ++level) {
         if (args.rate_profile[level]) { // Sibling level of the tree correspoding to the PTPC coset
@@ -241,12 +242,12 @@ uint64_t enumerate_subtree(
             continue;
         }
         // Einzelchild level of the intersection tree
-        uint64_t bit = 0L, message_bit = (message[level >> 6] >> (level & 63)) & 1; 
+        uint64_t bit = (message[level >> 6] >> (level & 63)) & 1; 
         for (size_t i = args.coset_index >> 6; i < ((level-1) >> 6)+1; ++i) {
             bit ^= message[i] & PRETRANSFORM(args)[level][i];
         }
-        if ((__builtin_popcountl(bit) & 1) == message_bit) {
-            continue;
+        if (!(__builtin_popcountl(bit) & 1)) {
+            continue; // both trees match
         }
         // The pre-transformation does not match with the current message
         if (args.sibling_levels[level]) {
@@ -279,9 +280,9 @@ uint64_t enumerate_subtree(
  * - A_wmin: Number of "wmin"-weight codewords
  */ 
 struct result enumerate_minimum_weight_codewords(
-    size_t  K, 
-    size_t  N, 
-    uint8_t generator_matrix[K][N]
+    size_t        K, 
+    size_t        N, 
+    const uint8_t generator_matrix[K][N]
 ) {
     // Compute the pre-transformation matrix and bring it into RREF
     uint8_t (*pretransform)[N] = malloc(sizeof(uint8_t[K][N]));
@@ -295,7 +296,7 @@ struct result enumerate_minimum_weight_codewords(
     struct args args = {
         .message_size = ((N-1) >> 6)+1, // the message is stored bitwise -> faster checking of the dynamic frozen bits
         .rate_profile = calloc(N, sizeof(uint8_t)), // indicator of the sibling level of the PTPC 
-        .pretransform = calloc(N*(((N-1) >> 6)+1), sizeof(uint64_t)),
+        .pretransform = calloc(N*(((N-1) >> 6)+1), sizeof(uint64_t)), // expanded pre-transform with bitwise columns in Fortran order
         .sibling_levels = malloc(sizeof(uint8_t[N])), // indicator of the sibling level of the "wmin"-weight codeword tree of a universal polar coset
     };
     if (args.rate_profile == NULL || args.pretransform == NULL || args.sibling_levels == NULL) {
@@ -316,7 +317,7 @@ struct result enumerate_minimum_weight_codewords(
     if (message == NULL) {
         exit(EXIT_FAILURE);
     }      
-    struct result result = {UINT64_MAX, 0UL};
+    struct result result = {UINT64_MAX, 0};
     
     // Find minimum Hamming weight "wmin" of a coset leader
     for (size_t index = 0; index < N; ++index) {
@@ -368,11 +369,11 @@ struct result enumerate_minimum_weight_codewords(
  * A_wmin: A pointer to the number of "wmin"-weight codewords
  */ 
 void enumerate_minimum_weight_codewords_wrapper(
-    size_t   K, 
-    size_t   N, 
-    uint8_t  generator_matrix[K][N],
-    uint64_t *wmin, 
-    uint64_t *A_wmin
+    size_t        K, 
+    size_t        N, 
+    const uint8_t generator_matrix[K][N],
+    uint64_t      *wmin, 
+    uint64_t      *A_wmin
 ) {
     struct result result = enumerate_minimum_weight_codewords(K, N, generator_matrix);
     *wmin = result.wmin; *A_wmin = result.A_wmin; // dealing with C structs inside of a Numba JIT function is difficult -> just use pointers 
@@ -387,8 +388,7 @@ void enumerate_minimum_weight_codewords_wrapper(
  */
 int main() {
     // Code parameters
-    int r = 3, m = 7;
-    size_t N = 1 << m; 
+    size_t r = 3, m = 7, N = 1 << m;
     uint8_t polynomial[] = {1,0,1,1,0,1,1};
     size_t degree = sizeof(polynomial) - 1;
     
@@ -425,7 +425,7 @@ int main() {
     clock_t end = clock();
     
     // Print result
-    printf("PAC RM(%d,%d):\n", r, m);
+    printf("PAC RM(%zu,%zu):\n", r, m);
     printf("wmin: %lu, A_wmin: %lu\n", result.wmin, result.A_wmin);
     printf("Average elapsed time of %d runs: %.3e s\n", runs, (double)(end - start) / (CLOCKS_PER_SEC * runs));
     
