@@ -82,8 +82,8 @@ void reed_muller_rate_profile(
     size_t  m, 
     uint8_t rate_profile[1ULL << m]
 ) {
-    for (size_t index = 0; index < (1 << m); ++index) {
-        rate_profile[index] = __builtin_popcountl(index) >= m-r;
+    for (size_t i = 0; i < (1 << m); ++i) {
+        rate_profile[i] = __builtin_popcountl(i) >= m-r;
     }
 }
 
@@ -116,8 +116,8 @@ void convolutional_pretransform(
         if (!rate_profile[i]) {
             continue;
         }
-        for (size_t pos = 0, col = i; pos <= degree && col < N; ++pos, ++col) {
-            pretransform[row][col] = polynomial[pos];
+        for (size_t j = 0, column = i; j <= degree && column < N; ++j, ++column) {
+            pretransform[row][column] = polynomial[j];
         }
         ++row;
     }
@@ -322,13 +322,13 @@ struct result enumerate_minimum_weight_codewords(
     // Find minimum Hamming weight "wmin" of a coset leader
     for (size_t index = 0; index < N; ++index) {
         if (args.rate_profile[index]) {
-            result.wmin = MIN(result.wmin, 1U << __builtin_popcount(index));
+            result.wmin = MIN(result.wmin, 1ULL << __builtin_popcount(index));
         }
     }
     
     // Count the "wmin"-weight codewords in each coset
     for (args.coset_index = 0; args.coset_index < N; ++args.coset_index) {
-        uint64_t row_weight = 1UL << __builtin_popcount(args.coset_index);
+        uint64_t row_weight = 1ULL << __builtin_popcount(args.coset_index);
         if (!args.rate_profile[args.coset_index] || row_weight > result.wmin) {
             continue; 
         }
