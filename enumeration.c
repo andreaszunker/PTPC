@@ -400,10 +400,8 @@ int main() {
     reed_muller_rate_profile(r, m, rate_profile);
     
     size_t K = 0;
-    for (size_t index = 0; index < N; ++index) {
-        if (rate_profile[index]) {
-            ++K;
-        }
+    for (size_t i = 0; i < N; ++i) {
+        K += rate_profile[i];
     }
     
     // Construct the generator matrix
